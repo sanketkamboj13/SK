@@ -6674,4 +6674,265 @@ html.dark .swatch.selected {
   background: #ffffff !important;
   color: #000000 !important;
   border-color: #ffffff !important;
+}/* =========================================================
+   S.K — FINAL MOBILE RESPONSIVE FIX
+   ========================================================= */
+
+@media (max-width: 1024px) {
+
+  /* HEADER */
+  .header {
+    height: 68px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0 18px !important;
+    position: relative !important;
+  }
+
+  /* HAMBURGER */
+  .mobile-menu {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 40px !important;
+    height: 40px !important;
+    flex: 0 0 40px;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    color: #111 !important;
+    z-index: 1002;
+  }
+
+  .mobile-menu svg {
+    width: 23px !important;
+    height: 23px !important;
+  }
+
+  /* LOGO */
+  .header .logo {
+    position: absolute !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    margin: 0 !important;
+    font-size: 34px !important;
+    z-index: 1001;
+  }
+
+  /* DESKTOP NAV MUST BE HIDDEN */
+  .header .nav {
+    display: none !important;
+    position: absolute !important;
+    top: 68px !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 8px 20px !important;
+
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    gap: 0 !important;
+
+    background: #fff !important;
+    border-bottom: 1px solid #ddd !important;
+
+    z-index: 1000;
+    box-sizing: border-box;
+  }
+
+  /* ONLY SHOW NAV WHEN MENU IS OPEN */
+  .header .nav.open {
+    display: flex !important;
+  }
+
+  .header .nav a {
+    display: block !important;
+    width: 100% !important;
+    padding: 16px 0 !important;
+
+    border-bottom: 1px solid #eee !important;
+
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+    letter-spacing: 1.2px !important;
+
+    white-space: nowrap !important;
+  }
+
+  .header .nav a:last-child {
+    border-bottom: 0 !important;
+  }
+
+  .header .nav a::after {
+    display: none !important;
+  }
+
+  /* HEADER ICONS */
+  .header .actions {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 10px !important;
+    margin-left: auto !important;
+    z-index: 1001;
+  }
+
+  .header .actions a,
+  .header .actions button {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  .header .actions svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  /* Keep search + wishlist + cart */
+  .header .actions a {
+    display: flex !important;
+  }
+
+  /* Account can remain visible */
+  .header .actions a:nth-child(2) {
+    display: flex !important;
+  }
+
+  /* Hide dark mode on smaller screens */
+  .header .theme-button {
+    display: none !important;
+  }
+
+  /* TOP ANNOUNCEMENT */
+  .announcement {
+    height: 34px !important;
+  }
+
+  .announcement-track span {
+    font-size: 9px !important;
+    padding: 0 18px !important;
+  }
+
+  .announcement-track span::after {
+    margin-left: 18px !important;
+  }
+
+  /* RED PROMO MARQUEE */
+  .promo-marquee {
+    height: 42px !important;
+  }
+
+  .promo-marquee-track span {
+    font-size: 10px !important;
+    margin-right: 35px !important;
+  }
+
+  /* SUMMER HERO */
+  .sk-campaign {
+    min-height: 560px !important;
+    width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  .sk-campaign-content {
+    width: calc(100% - 40px) !important;
+    padding: 70px 0 !important;
+  }
+
+  .sk-campaign h1 {
+    font-size: clamp(42px, 9vw, 72px) !important;
+    line-height: 0.9 !important;
+    letter-spacing: -0.04em !important;
+  }
+
+  .sk-campaign-description {
+    max-width: 330px !important;
+    font-size: 10px !important;
+    line-height: 1.6 !important;
+  }
+
+  .sk-campaign-scroll {
+    display: none !important;
+  }
+
+  /* PRODUCT GRIDS */
+  .grid.four {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .listing {
+    padding: 50px 18px 70px !important;
+  }
+
+  .listing-head {
+    margin-bottom: 30px !important;
+  }
+}
+
+
+/* =========================================================
+   SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+  .header {
+    height: 64px !important;
+    padding: 0 12px !important;
+  }
+
+  .header .nav {
+    top: 64px !important;
+  }
+
+  .header .logo {
+    font-size: 31px !important;
+  }
+
+  .header .actions {
+    gap: 7px !important;
+  }
+
+  .header .actions a,
+  .header .actions button {
+    width: 26px !important;
+    height: 26px !important;
+  }
+
+  .header .actions svg {
+    width: 19px !important;
+    height: 19px !important;
+  }
+
+  .mobile-menu {
+    width: 36px !important;
+    flex-basis: 36px;
+  }
+
+  .grid.four {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  .sk-campaign {
+    min-height: 520px !important;
+  }
+
+  .sk-campaign-content {
+    width: calc(100% - 32px) !important;
+    padding: 55px 0 !important;
+  }
+
+  .sk-campaign h1 {
+    font-size: clamp(38px, 12vw, 58px) !important;
+  }
+
+  .sk-campaign-description {
+    font-size: 9px !important;
+    max-width: 280px !important;
+  }
 }
