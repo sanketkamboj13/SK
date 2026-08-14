@@ -7170,4 +7170,97 @@ html.dark .swatch.selected {
   .product-card p {
     font-size: 11px !important;
   }
+}/* =========================================================
+   MOBILE FOOTER FIX
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+  footer {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  footer .footer-grid,
+  footer .footer-columns,
+  footer .grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 40px 24px !important;
+    width: 100% !important;
+  }
+
+  /* Brand section */
+  footer .footer-brand {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    text-align: left !important;
+  }
+
+  footer .footer-brand .logo,
+  footer .footer-brand h2 {
+    text-align: left !important;
+    margin-left: 0 !important;
+    margin-right: auto !important;
+  }
+
+  footer .footer-brand p {
+    max-width: 280px !important;
+    text-align: left !important;
+  }
+
+  /* Footer columns */
+  footer .footer-column {
+    width: 100% !important;
+    text-align: left !important;
+  }
+
+  footer .footer-column h3 {
+    text-align: left !important;
+  }
+
+  footer .footer-column a {
+    display: block !important;
+    text-align: left !important;
+  }
+
+  /* Copyright */
+  footer .footer-bottom {
+    width: 100% !important;
+    text-align: left !important;
+    margin-top: 35px !important;
+  }
+}/* =========================================================
+   FOOTER LOGO
+   ========================================================= */
+
+.footer-logo {
+  position: static !important;
+  display: block !important;
+  width: fit-content !important;
+  margin: 0 0 16px 0 !important;
+  padding: 0 !important;
+
+  font-size: 42px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.08em;
+  color: #e4002b;
+  text-align: left !important;
+}
+
+/* MOBILE FOOTER */
+@media (max-width: 768px) {
+  .footer-logo {
+    position: static !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    transform: none !important;
+
+    margin-left: 0 !important;
+    margin-right: auto !important;
+
+    text-align: left !important;
+  }
 }

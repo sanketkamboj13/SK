@@ -267,9 +267,9 @@ export function Footer() {
 
       <div>
 
-        <div className="logo">
-          S.K
-        </div>
+        <div className="footer-logo">
+  S.K
+</div>
 
         <p>
           Modern menswear for everyday confidence.
