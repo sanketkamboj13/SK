@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Header, Footer, ProductCard } from "../components";
 import { products } from "../../lib/products";
@@ -35,7 +36,7 @@ const priceRanges = [
   { label: "₹2,000+", min: 2000, max: Infinity },
 ];
 
-export default function Shop() {
+function ShopContent() {
   const searchParams = useSearchParams();
 
   const urlCategory = searchParams.get("category");
@@ -471,5 +472,11 @@ export default function Shop() {
 
       <Footer />
     </>
+  );
+}export default function Shop() {
+  return (
+    <Suspense fallback={<div className="shop-loading">Loading...</div>}>
+      <ShopContent />
+    </Suspense>
   );
 }
