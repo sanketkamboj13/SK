@@ -7345,4 +7345,64 @@ html.dark .swatch.selected {
   body.dark-mode .header .actions a:nth-child(2) {
     color: #ffffff !important;
   }
+}/* =========================================================
+   S.K MOBILE MENU — DARK MODE VISIBILITY FIX
+   ========================================================= */
+
+@media (max-width: 800px) {
+
+  /* LIGHT MODE MOBILE MENU */
+  .header .nav {
+    background: #ffffff !important;
+    color: #111111 !important;
+    border-bottom: 1px solid #dddddd !important;
+  }
+
+  .header .nav a {
+    color: #111111 !important;
+    background: transparent !important;
+  }
+
+  /* DARK MODE MOBILE MENU */
+  html.dark .header .nav,
+  body.dark .header .nav,
+  html.dark-mode .header .nav,
+  body.dark-mode .header .nav {
+    background: #111111 !important;
+    color: #ffffff !important;
+    border-bottom: 1px solid #333333 !important;
+  }
+
+  html.dark .header .nav a,
+  body.dark .header .nav a,
+  html.dark-mode .header .nav a,
+  body.dark-mode .header .nav a {
+    color: #ffffff !important;
+    background: transparent !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  /* DIVIDER BETWEEN MENU ITEMS */
+  html.dark .header .nav a,
+  body.dark .header .nav a,
+  html.dark-mode .header .nav a,
+  body.dark-mode .header .nav a {
+    border-bottom: 1px solid #2f2f2f !important;
+  }
+
+  /* HOVER */
+  html.dark .header .nav a:hover,
+  body.dark .header .nav a:hover,
+  html.dark-mode .header .nav a:hover,
+  body.dark-mode .header .nav a:hover {
+    color: #e5002b !important;
+  }
+
+  /* OPEN MENU MUST STAY VISIBLE */
+  .header .nav.open {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
 }
