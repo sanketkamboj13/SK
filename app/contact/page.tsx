@@ -1,0 +1,2 @@
+import { Header, Footer } from "../components";
+export default function Contact(){return <><Header/><main className="text-page narrow"><p className="eyebrow">S.K / CONTACT</p><h1>LET'S TALK.</h1><p className="lead">For customer support, collaborations or portfolio enquiries.</p><div className="form-card"><input placeholder="Name"/><input placeholder="Email"/><textarea placeholder="Message"></textarea><button className="btn">SEND MESSAGE</button></div></main><Footer/></>}

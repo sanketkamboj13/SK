@@ -1,0 +1,2 @@
+import { Header, Footer } from "../components";
+export default function Shipping(){return <><Header/><main className="text-page narrow"><p className="eyebrow">S.K / SERVICE</p><h1>SHIPPING & RETURNS</h1><h2>Shipping</h2><p>Standard India delivery is estimated at 3–7 business days. Orders above ₹2,000 receive free standard delivery in this demo.</p><h2>Returns</h2><p>Demo policy: eligible items can be returned within 14 days when unused and in original condition.</p></main><Footer/></>}
