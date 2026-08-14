@@ -7263,4 +7263,86 @@ html.dark .swatch.selected {
 
     text-align: left !important;
   }
+}/* =========================================================
+   MOBILE ACCOUNT ICON FIX
+   ========================================================= */
+
+@media (max-width: 600px) {
+  .header .actions {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+  }
+
+  /* Force Account icon to remain visible */
+  .header .actions a:nth-child(2) {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 27px !important;
+    height: 27px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .header .actions svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+}/* =========================================================
+   MOBILE HAMBURGER + ACCOUNT — DARK MODE FIX
+   ========================================================= */
+
+@media (max-width: 800px) {
+
+  /* 3-line hamburger */
+  .mobile-menu {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #111 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  .mobile-menu svg {
+    width: 24px !important;
+    height: 24px !important;
+    stroke: currentColor !important;
+    color: currentColor !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  /* Dark mode hamburger */
+  html.dark .mobile-menu,
+  body.dark .mobile-menu,
+  html.dark-mode .mobile-menu,
+  body.dark-mode .mobile-menu {
+    color: #ffffff !important;
+  }
+
+  html.dark .mobile-menu svg,
+  body.dark .mobile-menu svg,
+  html.dark-mode .mobile-menu svg,
+  body.dark-mode .mobile-menu svg {
+    stroke: #ffffff !important;
+    color: #ffffff !important;
+  }
+
+  /* Account icon */
+  .header .actions a:nth-child(2) {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  html.dark .header .actions a:nth-child(2),
+  body.dark .header .actions a:nth-child(2),
+  html.dark-mode .header .actions a:nth-child(2),
+  body.dark-mode .header .actions a:nth-child(2) {
+    color: #ffffff !important;
+  }
 }
