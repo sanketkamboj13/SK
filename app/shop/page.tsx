@@ -1,481 +1,330 @@
 "use client";
 
-import { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { Header, Footer, ProductCard } from "../components";
-import { products } from "../../lib/products";
-import { useMemo, useState } from "react";
+import { supabase } from "../../lib/supabase";
+import { useSearchParams } from "next/navigation";
 
-const sizes = ["XS", "S", "M", "L", "XL", "XXL"];
-
-const colors = [
-  "Black",
-  "White",
-  "Grey",
-  "Navy",
-  "Beige",
-  "Brown",
-  "Olive",
-  "Blue",
-];
-
-const fits = ["Regular", "Relaxed", "Oversized", "Slim"];
-
-const materials = [
-  "100% Cotton",
-  "Cotton Blend",
-  "Linen Blend",
-  "Denim",
-  "Polyester Blend",
-];
-
-const priceRanges = [
-  { label: "Under ₹1,000", min: 0, max: 999 },
-  { label: "₹1,000 – ₹1,499", min: 1000, max: 1499 },
-  { label: "₹1,500 – ₹1,999", min: 1500, max: 1999 },
-  { label: "₹2,000+", min: 2000, max: Infinity },
+const categories = [
+  "All",
+  "T-Shirts",
+  "Shirts",
+  "Jeans",
+  "Trousers",
+  "Jackets",
+  "Hoodies",
+  "Knitwear",
+  "Accessories",
 ];
 
 function ShopContent() {
   const searchParams = useSearchParams();
+  const categoryFromUrl = searchParams.get("category");
 
-  const urlCategory = searchParams.get("category");
-  const urlSale = searchParams.get("sale");
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
-  const [selectedColors, setSelectedColors] = useState<string[]>([]);
-  const [selectedFits, setSelectedFits] = useState<string[]>([]);
-  const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
-  const [selectedPrices, setSelectedPrices] = useState<string[]>([]);
-  const [availability, setAvailability] = useState<string[]>([]);
-  const [sort, setSort] = useState("Recommended");
+  const [category, setCategory] = useState(
+    categoryFromUrl || "All"
+  );
 
-  const toggleValue = (
-    value: string,
-    setter: React.Dispatch<React.SetStateAction<string[]>>
-  ) => {
-    setter((current) =>
-      current.includes(value)
-        ? current.filter((item) => item !== value)
-        : [...current, value]
-    );
-  };
+  const [sort, setSort] = useState("featured");
 
-  const clearFilters = () => {
-    setSelectedSizes([]);
-    setSelectedColors([]);
-    setSelectedFits([]);
-    setSelectedMaterials([]);
-    setSelectedPrices([]);
-    setAvailability([]);
-  };
+  useEffect(() => {
+    if (categoryFromUrl) {
+      setCategory(categoryFromUrl);
+    }
+  }, [categoryFromUrl]);
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  async function loadProducts() {
+    setLoading(true);
+
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("SHOP PRODUCTS ERROR:", error);
+      setProducts([]);
+    } else {
+      setProducts(data || []);
+    }
+
+    setLoading(false);
+  }
 
   const filteredProducts = useMemo(() => {
-    let result = products.filter((product) => {
-      // Category
-      if (urlCategory && product.category !== urlCategory) {
-        return false;
-      }
+    let result = [...products];
 
-      // Sale
-      if (urlSale && !product.sale) {
-        return false;
-      }
-
-      // Size
-      if (
-        selectedSizes.length > 0 &&
-        !selectedSizes.some((size) => product.sizes.includes(size))
-      ) {
-        return false;
-      }
-
-      // Color
-      if (
-        selectedColors.length > 0 &&
-        !selectedColors.some((color) => product.colors.includes(color))
-      ) {
-        return false;
-      }
-
-      // Fit
-      if (
-        selectedFits.length > 0 &&
-        !selectedFits.includes(product.fit)
-      ) {
-        return false;
-      }
-
-      // Material
-      if (
-        selectedMaterials.length > 0 &&
-        !selectedMaterials.includes(product.material)
-      ) {
-        return false;
-      }
-
-      // Price
-      if (selectedPrices.length > 0) {
-        const currentPrice = product.salePrice || product.price;
-
-        const matchesPrice = selectedPrices.some((priceLabel) => {
-          const range = priceRanges.find(
-            (range) => range.label === priceLabel
-          );
-
-          if (!range) return false;
-
-          return (
-            currentPrice >= range.min &&
-            currentPrice <= range.max
-          );
-        });
-
-        if (!matchesPrice) {
-          return false;
-        }
-      }
-
-      // Availability
-      if (availability.length > 0) {
-        const status =
-          product.stock === 0
-            ? "Out of Stock"
-            : product.stock <= 10
-            ? "Low Stock"
-            : "In Stock";
-
-        if (!availability.includes(status)) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-
-    // Sorting
-    if (sort === "Price: Low to High") {
-      result.sort(
-        (a, b) =>
-          (a.salePrice || a.price) -
-          (b.salePrice || b.price)
+    if (category !== "All") {
+      result = result.filter(
+        (product) => product.category === category
       );
     }
 
-    if (sort === "Price: High to Low") {
+    if (sort === "price-low") {
       result.sort(
         (a, b) =>
-          (b.salePrice || b.price) -
-          (a.salePrice || a.price)
+          Number(a.price || 0) - Number(b.price || 0)
       );
     }
 
-    if (sort === "Customer Rating") {
-      result.sort((a, b) => b.rating - a.rating);
-    }
-
-    if (sort === "Newest") {
+    if (sort === "price-high") {
       result.sort(
         (a, b) =>
-          Number(Boolean(b.newArrival)) -
-          Number(Boolean(a.newArrival))
+          Number(b.price || 0) - Number(a.price || 0)
+      );
+    }
+
+    if (sort === "newest") {
+      result.sort((a, b) => {
+        const dateA = a.created_at
+          ? new Date(a.created_at).getTime()
+          : 0;
+
+        const dateB = b.created_at
+          ? new Date(b.created_at).getTime()
+          : 0;
+
+        return dateB - dateA;
+      });
+    }
+
+    if (sort === "sale") {
+      result = result.filter(
+        (product) =>
+          product.sale === true ||
+          product.sale_price !== null
+      );
+    }
+
+    if (sort === "featured") {
+      result.sort(
+        (a, b) =>
+          Number(Boolean(b.featured)) -
+          Number(Boolean(a.featured))
       );
     }
 
     return result;
-  }, [
-    urlCategory,
-    urlSale,
-    selectedSizes,
-    selectedColors,
-    selectedFits,
-    selectedMaterials,
-    selectedPrices,
-    availability,
-    sort,
-  ]);
-
-  const activeFilterCount =
-    selectedSizes.length +
-    selectedColors.length +
-    selectedFits.length +
-    selectedMaterials.length +
-    selectedPrices.length +
-    availability.length;
+  }, [products, category, sort]);
 
   return (
     <>
       <Header />
 
-      <main className="listing">
-        <div className="listing-head">
+      <main className="shop">
+
+        {/* =========================
+            SHOP HEADER
+        ========================== */}
+
+        <section className="shop-head">
           <div>
-            <p className="eyebrow">S.K / SHOP</p>
-
-            <h1>
-              {urlCategory
-                ? `MEN'S ${urlCategory.toUpperCase()}`
-                : urlSale
-                ? "SALE"
-                : "SHOP ALL"}
-            </h1>
-
-            <p>
-              {filteredProducts.length} products
+            <p className="eyebrow">
+              S.K / COLLECTION
             </p>
+
+            <h1>SHOP MEN</h1>
+          </div>
+
+          <p>
+            {products.length}{" "}
+            {products.length === 1
+              ? "product"
+              : "products"}
+          </p>
+        </section>
+
+        {/* =========================
+            FILTER / SORT BAR
+        ========================== */}
+
+        <div className="shop-toolbar">
+
+          <div className="category-filters">
+            {categories.map((item) => (
+              <button
+                key={item}
+                type="button"
+                className={
+                  category === item
+                    ? "active"
+                    : ""
+                }
+                onClick={() =>
+                  setCategory(item)
+                }
+              >
+                {item}
+              </button>
+            ))}
           </div>
 
           <select
             value={sort}
-            onChange={(e) => setSort(e.target.value)}
+            onChange={(e) =>
+              setSort(e.target.value)
+            }
+            aria-label="Sort products"
           >
-            <option>Recommended</option>
-            <option>Newest</option>
-            <option>Price: Low to High</option>
-            <option>Price: High to Low</option>
-            <option>Customer Rating</option>
+            <option value="featured">
+              Featured
+            </option>
+
+            <option value="newest">
+              Newest
+            </option>
+
+            <option value="price-low">
+              Price: Low to High
+            </option>
+
+            <option value="price-high">
+              Price: High to Low
+            </option>
+
+            <option value="sale">
+              On Sale
+            </option>
           </select>
+
         </div>
 
-        <div className="shop-layout">
+        {/* =========================
+            PRODUCT AREA
+        ========================== */}
 
-          {/* FILTER SIDEBAR */}
-          <aside className="filter-sidebar">
+        {loading ? (
 
-            <div className="filter-header">
-              <b>FILTERS</b>
+          <div className="section">
+            <p>
+              Loading S.K collection...
+            </p>
+          </div>
 
-              {activeFilterCount > 0 && (
-                <button onClick={clearFilters}>
-                  CLEAR ALL
-                </button>
-              )}
-            </div>
+        ) : filteredProducts.length === 0 ? (
 
-            {/* CATEGORY */}
-<details open>
-  <summary>CATEGORY</summary>
+          <div className="section">
+            <h2>
+              No products available
+            </h2>
 
-  <div className="filter-options">
-    {[
-      "T-Shirts",
-      "Shirts",
-      "Jeans",
-      "Trousers",
-      "Jackets",
-      "Hoodies",
-      "Knitwear",
-      "Accessories",
-    ].map((category) => {
-      const selected = urlCategory === category;
+            <p>
+              Products added through the S.K Admin
+              panel will appear here.
+            </p>
+          </div>
 
-      return (
-        <button
-          key={category}
-          type="button"
-          className="category-filter-button"
-          onClick={() => {
-            if (selected) {
-              window.location.href = "/shop";
-            } else {
-              window.location.href = `/shop?category=${encodeURIComponent(
-                category
-              )}`;
-            }
-          }}
-        >
-          <span
-            className={
-              selected
-                ? "fake-checkbox checked"
-                : "fake-checkbox"
-            }
-          >
-            {selected ? "✓" : ""}
-          </span>
+        ) : (
 
-          <span>{category}</span>
-        </button>
-      );
-    })}
-  </div>
-</details>
-            {/* SIZE */}
-            <details open>
-              <summary>SIZE</summary>
+          <div className="grid four">
 
-              <div className="filter-options">
-                {sizes.map((size) => (
-                  <label key={size}>
-                    <input
-                      type="checkbox"
-                      checked={selectedSizes.includes(size)}
-                      onChange={() =>
-                        toggleValue(size, setSelectedSizes)
-                      }
-                    />
+            {filteredProducts.map((product) => {
 
-                    <span>{size}</span>
-                  </label>
-                ))}
-              </div>
-            </details>
+              const safeProduct = {
+                ...product,
 
-            {/* COLOR */}
-            <details open>
-              <summary>COLOR</summary>
+                salePrice:
+                  product.sale_price ??
+                  undefined,
 
-              <div className="filter-options">
-                {colors.map((color) => (
-                  <label key={color}>
-                    <input
-                      type="checkbox"
-                      checked={selectedColors.includes(color)}
-                      onChange={() =>
-                        toggleValue(color, setSelectedColors)
-                      }
-                    />
+                newArrival:
+                  product.new_arrival ??
+                  false,
 
-                    <span>{color}</span>
-                  </label>
-                ))}
-              </div>
-            </details>
+                images:
+                  Array.isArray(product.images) &&
+                  product.images.length > 0
+                    ? product.images
+                    : product.image
+                      ? [product.image]
+                      : [],
 
-            {/* PRICE */}
-            <details open>
-              <summary>PRICE</summary>
+                colors:
+                  Array.isArray(product.colors)
+                    ? product.colors
+                    : [],
 
-              <div className="filter-options">
-                {priceRanges.map((range) => (
-                  <label key={range.label}>
-                    <input
-                      type="checkbox"
-                      checked={selectedPrices.includes(range.label)}
-                      onChange={() =>
-                        toggleValue(
-                          range.label,
-                          setSelectedPrices
-                        )
-                      }
-                    />
+                sizes:
+                  Array.isArray(product.sizes)
+                    ? product.sizes
+                    : [],
 
-                    <span>{range.label}</span>
-                  </label>
-                ))}
-              </div>
-            </details>
+                price:
+                  Number(product.price || 0),
 
-            {/* FIT */}
-            <details>
-              <summary>FIT</summary>
+                stock:
+                  Number(product.stock || 0),
 
-              <div className="filter-options">
-                {fits.map((fit) => (
-                  <label key={fit}>
-                    <input
-                      type="checkbox"
-                      checked={selectedFits.includes(fit)}
-                      onChange={() =>
-                        toggleValue(fit, setSelectedFits)
-                      }
-                    />
+                rating:
+                  Number(product.rating || 0),
 
-                    <span>{fit}</span>
-                  </label>
-                ))}
-              </div>
-            </details>
+                reviews:
+                  Number(product.reviews || 0),
 
-            {/* MATERIAL */}
-            <details>
-              <summary>MATERIAL</summary>
+                description:
+                  product.description || "",
 
-              <div className="filter-options">
-                {materials.map((material) => (
-                  <label key={material}>
-                    <input
-                      type="checkbox"
-                      checked={selectedMaterials.includes(material)}
-                      onChange={() =>
-                        toggleValue(
-                          material,
-                          setSelectedMaterials
-                        )
-                      }
-                    />
+                material:
+                  product.material || "",
 
-                    <span>{material}</span>
-                  </label>
-                ))}
-              </div>
-            </details>
+                fit:
+                  product.fit || "",
 
-            {/* AVAILABILITY */}
-            <details>
-              <summary>AVAILABILITY</summary>
+                sku:
+                  product.sku || product.id,
+              };
 
-              <div className="filter-options">
-                {[
-                  "In Stock",
-                  "Low Stock",
-                  "Out of Stock",
-                ].map((status) => (
-                  <label key={status}>
-                    <input
-                      type="checkbox"
-                      checked={availability.includes(status)}
-                      onChange={() =>
-                        toggleValue(status, setAvailability)
-                      }
-                    />
-
-                    <span>{status}</span>
-                  </label>
-                ))}
-              </div>
-            </details>
-          </aside>
-
-          {/* PRODUCTS */}
-          <div>
-
-            {filteredProducts.length === 0 ? (
-              <div className="empty">
-                <h2>NO PRODUCTS FOUND</h2>
-
-                <p>
-                  Try changing or removing some filters.
-                </p>
-
-                <button
-                  className="btn"
-                  onClick={clearFilters}
-                >
-                  CLEAR FILTERS
-                </button>
-              </div>
-            ) : (
-              <div className="grid four">
-                {filteredProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    p={product}
-                  />
-                ))}
-              </div>
-            )}
+              return (
+                <ProductCard
+                  key={product.id}
+                  p={safeProduct}
+                />
+              );
+            })}
 
           </div>
-        </div>
+
+        )}
+
       </main>
 
       <Footer />
     </>
   );
-}export default function Shop() {
+}
+
+/* =========================================
+   SUSPENSE BOUNDARY
+   Fixes production prerendering with
+   useSearchParams()
+========================================= */
+
+export default function Shop() {
   return (
-    <Suspense fallback={<div className="shop-loading">Loading...</div>}>
+    <Suspense
+      fallback={
+        <>
+          <Header />
+
+          <main className="shop">
+            <div className="section">
+              <p>
+                Loading S.K collection...
+              </p>
+            </div>
+          </main>
+
+          <Footer />
+        </>
+      }
+    >
       <ShopContent />
     </Suspense>
   );

@@ -1,18 +1,68 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Header, Footer, ProductCard } from "../components";
-import { products } from "../../lib/products";
 import Link from "next/link";
+import { supabase } from "../../lib/supabase";
 
 export default function New() {
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadNewArrivals() {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("new_arrival", true)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("NEW ARRIVALS ERROR:", error);
+        setProducts([]);
+      } else {
+        const formattedProducts = (data || []).map((product) => ({
+          ...product,
+
+          salePrice:
+            product.sale_price ?? undefined,
+
+          newArrival:
+            product.new_arrival ?? false,
+
+          images:
+            Array.isArray(product.images)
+              ? product.images
+              : [product.image],
+
+          colors:
+            Array.isArray(product.colors)
+              ? product.colors
+              : [],
+
+          sizes:
+            Array.isArray(product.sizes)
+              ? product.sizes
+              : [],
+        }));
+
+        setProducts(formattedProducts);
+      }
+
+      setLoading(false);
+    }
+
+    loadNewArrivals();
+  }, []);
+
   return (
     <>
       <Header />
 
-      
       {/* =====================================================
           CINEMATIC SUMMER SALE BANNER
           ===================================================== */}
+
       <section className="sk-campaign">
 
         <div className="sk-campaign-image"></div>
@@ -52,13 +102,14 @@ export default function New() {
 
       </section>
 
-
       {/* =====================================================
           NEW ARRIVALS
           ===================================================== */}
+
       <main className="listing">
 
         <div className="listing-head">
+
           <div>
 
             <p className="eyebrow">
@@ -74,22 +125,44 @@ export default function New() {
             </p>
 
           </div>
+
         </div>
 
-
         {/* PRODUCT GRID */}
-        <div className="grid four">
 
-          {products
-            .filter((p) => p.newArrival)
-            .map((p) => (
+        {loading ? (
+
+          <div className="section">
+            <p>Loading new arrivals...</p>
+          </div>
+
+        ) : products.length === 0 ? (
+
+          <div className="section">
+            <h2>NO NEW ARRIVALS YET</h2>
+
+            <p>
+              Products marked as "New Arrival" in the
+              S.K Admin panel will appear here.
+            </p>
+          </div>
+
+        ) : (
+
+          <div className="grid four">
+
+            {products.map((p) => (
+
               <ProductCard
                 key={p.id}
                 p={p}
               />
+
             ))}
 
-        </div>
+          </div>
+
+        )}
 
       </main>
 

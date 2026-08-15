@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   Header,
@@ -10,14 +10,11 @@ import {
   ProductCard,
 } from "../../components";
 
-import { products } from "../../../lib/products";
+import { supabase } from "../../../lib/supabase";
 import { useStore } from "../../store";
 
 export default function Product() {
   const { id } = useParams<{ id: string }>();
-
-  const product =
-    products.find((item) => item.id === id) || products[0];
 
   const {
     addToCart,
@@ -25,29 +22,137 @@ export default function Product() {
     wishlist,
   } = useStore();
 
-  const [size, setSize] = useState(
-    product.sizes[2] || product.sizes[0]
-  );
+  const [product, setProduct] = useState<any>(null);
+  const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [color, setColor] = useState(
-    product.colors[0]
-  );
+  const [size, setSize] = useState("");
+  const [color, setColor] = useState("");
+  const [image, setImage] = useState("");
 
-  const [image, setImage] = useState(
-    product.image
-  );
+  useEffect(() => {
+    async function loadProduct() {
+      setLoading(true);
 
-  const isWishlisted = wishlist.includes(product.id);
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error) {
+        console.error("PRODUCT ERROR:", error);
+        setProduct(null);
+        setLoading(false);
+        return;
+      }
+
+      const formattedProduct = {
+        ...data,
+        salePrice: data.sale_price ?? undefined,
+        newArrival: data.new_arrival ?? false,
+        images: Array.isArray(data.images)
+          ? data.images
+          : [data.image],
+        colors: Array.isArray(data.colors)
+          ? data.colors
+          : [],
+        sizes: Array.isArray(data.sizes)
+          ? data.sizes
+          : [],
+      };
+
+      setProduct(formattedProduct);
+
+      setSize(
+        formattedProduct.sizes[2] ||
+        formattedProduct.sizes[0] ||
+        ""
+      );
+
+      setColor(
+        formattedProduct.colors[0] || ""
+      );
+
+      setImage(
+        formattedProduct.image || ""
+      );
+
+      // Load related products
+      const { data: related } = await supabase
+        .from("products")
+        .select("*")
+        .eq("category", data.category)
+        .neq("id", data.id)
+        .limit(4);
+
+      if (related) {
+        setRelatedProducts(
+          related.map((item) => ({
+            ...item,
+            salePrice: item.sale_price ?? undefined,
+            newArrival: item.new_arrival ?? false,
+            images: Array.isArray(item.images)
+              ? item.images
+              : [item.image],
+            colors: Array.isArray(item.colors)
+              ? item.colors
+              : [],
+            sizes: Array.isArray(item.sizes)
+              ? item.sizes
+              : [],
+          }))
+        );
+      }
+
+      setLoading(false);
+    }
+
+    if (id) {
+      loadProduct();
+    }
+  }, [id]);
+
+  const isWishlisted =
+    product ? wishlist.includes(product.id) : false;
+
+  if (loading) {
+    return (
+      <>
+        <Header />
+
+        <main className="section">
+          <p>Loading product...</p>
+        </main>
+
+        <Footer />
+      </>
+    );
+  }
+
+  if (!product) {
+    return (
+      <>
+        <Header />
+
+        <main className="section">
+          <h1>PRODUCT NOT FOUND</h1>
+
+          <Link href="/shop">
+            BACK TO SHOP
+          </Link>
+        </main>
+
+        <Footer />
+      </>
+    );
+  }
 
   return (
     <>
       <Header />
 
       <main className="pdp">
-
-        {/* =========================
-            PRODUCT IMAGE AREA
-        ========================== */}
 
         <section className="gallery">
 
@@ -60,32 +165,29 @@ export default function Product() {
 
           <div className="gallery-thumbnails">
 
-            {product.images.map((item, index) => (
-              <button
-                key={`${item}-${index}`}
-                className={
-                  image === item
-                    ? "gallery-thumb active"
-                    : "gallery-thumb"
-                }
-                onClick={() => setImage(item)}
-                aria-label={`View product image ${index + 1}`}
-              >
-                <img
-                  src={item}
-                  alt=""
-                />
-              </button>
-            ))}
+            {product.images.map(
+              (item: string, index: number) => (
+                <button
+                  key={`${item}-${index}`}
+                  className={
+                    image === item
+                      ? "gallery-thumb active"
+                      : "gallery-thumb"
+                  }
+                  onClick={() => setImage(item)}
+                  aria-label={`View product image ${index + 1}`}
+                >
+                  <img
+                    src={item}
+                    alt=""
+                  />
+                </button>
+              )
+            )}
 
           </div>
 
         </section>
-
-
-        {/* =========================
-            PRODUCT INFORMATION
-        ========================== */}
 
         <section className="pinfo">
 
@@ -102,6 +204,7 @@ export default function Product() {
               </h1>
 
               <div className="product-rating">
+
                 <span className="stars">
                   ★★★★★
                 </span>
@@ -113,6 +216,7 @@ export default function Product() {
                 <span className="muted">
                   ({product.reviews} reviews)
                 </span>
+
               </div>
 
             </div>
@@ -129,25 +233,22 @@ export default function Product() {
 
           </div>
 
-
-          {/* PRICE */}
-
           <div className="product-price">
 
             {product.salePrice ? (
               <>
                 <strong>
                   ₹
-                  {product.salePrice.toLocaleString(
-                    "en-IN"
-                  )}
+                  {Number(
+                    product.salePrice
+                  ).toLocaleString("en-IN")}
                 </strong>
 
                 <s>
                   ₹
-                  {product.price.toLocaleString(
-                    "en-IN"
-                  )}
+                  {Number(
+                    product.price
+                  ).toLocaleString("en-IN")}
                 </s>
 
                 <span className="sale-badge">
@@ -157,23 +258,17 @@ export default function Product() {
             ) : (
               <strong>
                 ₹
-                {product.price.toLocaleString(
-                  "en-IN"
-                )}
+                {Number(
+                  product.price
+                ).toLocaleString("en-IN")}
               </strong>
             )}
 
           </div>
 
-
-          {/* DESCRIPTION */}
-
           <p className="product-description">
             {product.description}
           </p>
-
-
-          {/* SHIPPING PROMISES */}
 
           <div className="purchase-benefits">
 
@@ -200,65 +295,51 @@ export default function Product() {
 
           </div>
 
-
-          {/* COLOR */}
-
           <div className="product-option">
 
             <div className="option-heading">
-
-              <strong>
-                COLOR
-              </strong>
-
-              <span>
-                {color}
-              </span>
-
+              <strong>COLOR</strong>
+              <span>{color}</span>
             </div>
 
             <div className="swatches">
 
-              {product.colors.map((item) => (
+              {product.colors.map(
+                (item: string) => (
+                  <button
+                    key={item}
+                    className={
+                      color === item
+                        ? "swatch selected"
+                        : "swatch"
+                    }
+                    onClick={() =>
+                      setColor(item)
+                    }
+                    aria-label={`Select ${item}`}
+                  >
+                    <span
+                      className={`swatch-circle swatch-${item
+                        .toLowerCase()
+                        .replace(/\s+/g, "-")}`}
+                    />
 
-                <button
-                  key={item}
-                  className={
-                    color === item
-                      ? "swatch selected"
-                      : "swatch"
-                  }
-                  onClick={() =>
-                    setColor(item)
-                  }
-                  aria-label={`Select ${item}`}
-                >
-                  <span
-                    className={`swatch-circle swatch-${item
-                      .toLowerCase()
-                      .replace(/\s+/g, "-")}`}
-                  />
-                  <span>
-                    {item}
-                  </span>
-                </button>
-
-              ))}
+                    <span>
+                      {item}
+                    </span>
+                  </button>
+                )
+              )}
 
             </div>
 
           </div>
 
-
-          {/* SIZE */}
-
           <div className="product-option">
 
             <div className="option-heading">
 
-              <strong>
-                SIZE
-              </strong>
+              <strong>SIZE</strong>
 
               <Link href="/size-guide">
                 SIZE GUIDE
@@ -268,37 +349,36 @@ export default function Product() {
 
             <div className="sizes">
 
-              {product.sizes.map((item) => (
-
-                <button
-                  key={item}
-                  className={
-                    size === item
-                      ? "selected"
-                      : ""
-                  }
-                  onClick={() =>
-                    setSize(item)
-                  }
-                >
-                  {item}
-                </button>
-
-              ))}
+              {product.sizes.map(
+                (item: string) => (
+                  <button
+                    key={item}
+                    className={
+                      size === item
+                        ? "selected"
+                        : ""
+                    }
+                    onClick={() =>
+                      setSize(item)
+                    }
+                  >
+                    {item}
+                  </button>
+                )
+              )}
 
             </div>
 
           </div>
-
-
-          {/* STOCK */}
 
           <div className="stock-message">
 
             <span className="stock-dot" />
 
             <strong>
-              Only 5 left
+              {product.stock > 5
+                ? `${product.stock} in stock`
+                : `Only ${product.stock} left`}
             </strong>
 
             <span>
@@ -306,9 +386,6 @@ export default function Product() {
             </span>
 
           </div>
-
-
-          {/* BUTTONS */}
 
           <div className="purchase-actions">
 
@@ -334,7 +411,8 @@ export default function Product() {
                   color
                 );
 
-                window.location.href = "/cart";
+                window.location.href =
+                  "/cart";
               }}
             >
               BUY NOW
@@ -342,55 +420,39 @@ export default function Product() {
 
           </div>
 
-
-          {/* PRODUCT INFORMATION */}
-
           <div className="product-info-grid">
 
             <div>
-              <span>
-                SKU
-              </span>
-
+              <span>SKU</span>
               <strong>
                 {product.sku}
               </strong>
             </div>
 
             <div>
-              <span>
-                MATERIAL
-              </span>
-
+              <span>MATERIAL</span>
               <strong>
                 {product.material}
               </strong>
             </div>
 
             <div>
-              <span>
-                FIT
-              </span>
-
+              <span>FIT</span>
               <strong>
                 {product.fit}
               </strong>
             </div>
 
             <div>
-              <span>
-                AVAILABILITY
-              </span>
-
+              <span>AVAILABILITY</span>
               <strong>
-                In stock
+                {product.stock > 0
+                  ? "In stock"
+                  : "Out of stock"}
               </strong>
             </div>
 
           </div>
-
-
-          {/* ACCORDIONS */}
 
           <div className="product-accordions">
 
@@ -414,7 +476,6 @@ export default function Product() {
               </div>
 
             </details>
-
 
             <details>
 
@@ -442,7 +503,6 @@ export default function Product() {
 
             </details>
 
-
             <details>
 
               <summary>
@@ -465,7 +525,6 @@ export default function Product() {
 
             </details>
 
-
             <details>
 
               <summary>
@@ -480,9 +539,8 @@ export default function Product() {
                 </p>
 
                 <p>
-                  Demo checkout supports standard
-                  payment methods for this portfolio
-                  project.
+                  Secure checkout supports
+                  standard payment methods.
                 </p>
 
               </div>
@@ -494,11 +552,6 @@ export default function Product() {
         </section>
 
       </main>
-
-
-      {/* =========================
-          RECOMMENDATIONS
-      ========================== */}
 
       <section className="section recommendations">
 
@@ -516,26 +569,18 @@ export default function Product() {
 
         <div className="grid four">
 
-          {products
-            .filter(
-              (item) =>
-                item.category === product.category &&
-                item.id !== product.id
-            )
-            .slice(0, 4)
-            .map((item) => (
-
+          {relatedProducts.map(
+            (item) => (
               <ProductCard
                 key={item.id}
                 p={item}
               />
-
-            ))}
+            )
+          )}
 
         </div>
 
       </section>
-
 
       <Footer />
     </>
