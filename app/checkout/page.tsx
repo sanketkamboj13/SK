@@ -9,7 +9,10 @@ export default function Checkout() {
   const { cart } = useStore();
 
   const total = cart.reduce(
-    (a, x) => a + (x.salePrice || x.price) * x.qty,
+    (total, item) =>
+      total +
+      Number(item.sale_price ?? item.price ?? 0) *
+        item.qty,
     0
   );
 
@@ -20,7 +23,8 @@ export default function Checkout() {
   const [city, setCity] = useState("");
   const [pin, setPin] = useState("");
   const [phone, setPhone] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("UPI");
+  const [paymentMethod, setPaymentMethod] =
+    useState("UPI");
   const [loading, setLoading] = useState(false);
 
   async function placeOrder() {
@@ -33,7 +37,9 @@ export default function Checkout() {
       !pin ||
       !phone
     ) {
-      alert("Please fill in all shipping details.");
+      alert(
+        "Please fill in all shipping details."
+      );
       return;
     }
 
@@ -48,29 +54,42 @@ export default function Checkout() {
       id: item.id,
       name: item.name,
       quantity: item.qty,
-      price: item.salePrice || item.price,
+      price: Number(
+        item.sale_price ?? item.price ?? 0
+      ),
     }));
 
-    const { error } = await supabase.from("orders").insert({
-      customer_name: `${firstName} ${lastName}`,
-      phone: phone,
-      email: email,
-      address: `${address}, ${city} - ${pin}`,
-      products: products,
-      total_amount: total,
-      payment_method: paymentMethod,
-      status: "pending",
-    });
+    const { error } = await supabase
+      .from("orders")
+      .insert({
+        customer_name: `${firstName} ${lastName}`,
+        phone,
+        email,
+        address: `${address}, ${city} - ${pin}`,
+        products,
+        total_amount: total,
+        payment_method: paymentMethod,
+        status: "pending",
+      });
 
     setLoading(false);
 
     if (error) {
-      console.error(error);
-      alert("Order failed. Please try again.");
+      console.error(
+        "ORDER ERROR:",
+        error
+      );
+
+      alert(
+        "Order failed. Please try again."
+      );
+
       return;
     }
 
-    alert("Order placed successfully!");
+    alert(
+      "Order placed successfully!"
+    );
 
     window.location.href = "/";
   }
@@ -81,128 +100,242 @@ export default function Checkout() {
 
       <main className="checkout">
 
-        <div>
-          <p className="eyebrow">S.K / CHECKOUT</p>
+        {/* CHECKOUT FORM */}
 
-          <h1>CHECKOUT</h1>
+        <div>
+
+          <p className="eyebrow">
+            S.K / CHECKOUT
+          </p>
+
+          <h1>
+            CHECKOUT
+          </h1>
 
           <div className="form-card">
 
-            <h2>1. CONTACT INFORMATION</h2>
+            {/* CONTACT */}
+
+            <h2>
+              1. CONTACT INFORMATION
+            </h2>
 
             <input
+              type="email"
               placeholder="Email address"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) =>
+                setEmail(e.target.value)
+              }
             />
 
-            <h2>2. SHIPPING ADDRESS</h2>
+            {/* SHIPPING */}
+
+            <h2>
+              2. SHIPPING ADDRESS
+            </h2>
 
             <div className="two">
+
               <input
                 placeholder="First name"
                 value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
+                onChange={(e) =>
+                  setFirstName(
+                    e.target.value
+                  )
+                }
               />
 
               <input
                 placeholder="Last name"
                 value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
+                onChange={(e) =>
+                  setLastName(
+                    e.target.value
+                  )
+                }
               />
+
             </div>
 
             <input
               placeholder="Address"
               value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              onChange={(e) =>
+                setAddress(
+                  e.target.value
+                )
+              }
             />
 
             <div className="two">
+
               <input
                 placeholder="City"
                 value={city}
-                onChange={(e) => setCity(e.target.value)}
+                onChange={(e) =>
+                  setCity(
+                    e.target.value
+                  )
+                }
               />
 
               <input
                 placeholder="PIN code"
                 value={pin}
-                onChange={(e) => setPin(e.target.value)}
+                onChange={(e) =>
+                  setPin(
+                    e.target.value
+                  )
+                }
               />
+
             </div>
 
             <input
+              type="tel"
               placeholder="Phone number"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={(e) =>
+                setPhone(
+                  e.target.value
+                )
+              }
             />
 
-            <h2>3. PAYMENT</h2>
+            {/* PAYMENT */}
+
+            <h2>
+              3. PAYMENT
+            </h2>
 
             <label>
+
               <input
                 type="radio"
                 name="pay"
                 value="UPI"
-                checked={paymentMethod === "UPI"}
-                onChange={(e) => setPaymentMethod(e.target.value)}
+                checked={
+                  paymentMethod === "UPI"
+                }
+                onChange={(e) =>
+                  setPaymentMethod(
+                    e.target.value
+                  )
+                }
               />
+
               UPI
+
             </label>
 
             <label>
+
               <input
                 type="radio"
                 name="pay"
                 value="Credit / Debit Card"
-                checked={paymentMethod === "Credit / Debit Card"}
-                onChange={(e) => setPaymentMethod(e.target.value)}
+                checked={
+                  paymentMethod ===
+                  "Credit / Debit Card"
+                }
+                onChange={(e) =>
+                  setPaymentMethod(
+                    e.target.value
+                  )
+                }
               />
+
               Credit / Debit Card
+
             </label>
 
             <label>
+
               <input
                 type="radio"
                 name="pay"
                 value="Cash on Delivery"
-                checked={paymentMethod === "Cash on Delivery"}
-                onChange={(e) => setPaymentMethod(e.target.value)}
+                checked={
+                  paymentMethod ===
+                  "Cash on Delivery"
+                }
+                onChange={(e) =>
+                  setPaymentMethod(
+                    e.target.value
+                  )
+                }
               />
+
               Cash on Delivery
+
             </label>
 
+            {/* PLACE ORDER */}
+
             <button
+              type="button"
               className="btn full"
               onClick={placeOrder}
               disabled={loading}
             >
-              {loading ? "PLACING ORDER..." : "PLACE ORDER"}
+              {loading
+                ? "PLACING ORDER..."
+                : "PLACE ORDER"}
             </button>
 
           </div>
         </div>
 
+        {/* ORDER SUMMARY */}
+
         <aside className="summary">
 
-          <h2>YOUR ORDER</h2>
+          <h2>
+            YOUR ORDER
+          </h2>
 
-          {cart.map((x) => (
-            <p key={x.id}>
-              {x.name} × {x.qty}
+          {cart.map((item) => {
 
-              <span>
-                ₹{((x.salePrice || x.price) * x.qty).toLocaleString("en-IN")}
-              </span>
-            </p>
-          ))}
+            const itemPrice = Number(
+              item.sale_price ??
+                item.price ??
+                0
+            );
+
+            return (
+              <p key={item.id}>
+
+                {item.name} × {item.qty}
+
+                <span>
+                  ₹
+                  {(
+                    itemPrice *
+                    item.qty
+                  ).toLocaleString(
+                    "en-IN"
+                  )}
+                </span>
+
+              </p>
+            );
+          })}
 
           <hr />
 
           <h3>
+
             Total
-            <span>₹{total.toLocaleString("en-IN")}</span>
+
+            <span>
+              ₹
+              {total.toLocaleString(
+                "en-IN"
+              )}
+            </span>
+
           </h3>
 
         </aside>

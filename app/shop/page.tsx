@@ -19,16 +19,18 @@ const categories = [
 
 function ShopContent() {
   const searchParams = useSearchParams();
-  const categoryFromUrl = searchParams.get("category");
+
+  const categoryFromUrl =
+    searchParams.get("category");
 
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [category, setCategory] = useState(
-    categoryFromUrl || "All"
-  );
+  const [category, setCategory] =
+    useState(categoryFromUrl || "All");
 
-  const [sort, setSort] = useState("featured");
+  const [sort, setSort] =
+    useState("featured");
 
   useEffect(() => {
     if (categoryFromUrl) {
@@ -37,58 +39,73 @@ function ShopContent() {
   }, [categoryFromUrl]);
 
   useEffect(() => {
-    loadProducts();
-  }, []);
+    async function loadProducts() {
+      setLoading(true);
 
-  async function loadProducts() {
-    setLoading(true);
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .order("created_at", {
+          ascending: false,
+        });
 
-    const { data, error } = await supabase
-      .from("products")
-      .select("*")
-      .order("created_at", { ascending: false });
+      if (error) {
+        console.error(
+          "SHOP PRODUCTS ERROR:",
+          error
+        );
 
-    if (error) {
-      console.error("SHOP PRODUCTS ERROR:", error);
-      setProducts([]);
-    } else {
-      setProducts(data || []);
+        setProducts([]);
+      } else {
+        setProducts(data || []);
+      }
+
+      setLoading(false);
     }
 
-    setLoading(false);
-  }
+    loadProducts();
+  }, []);
 
   const filteredProducts = useMemo(() => {
     let result = [...products];
 
+    // CATEGORY
     if (category !== "All") {
       result = result.filter(
-        (product) => product.category === category
+        (product) =>
+          product.category === category
       );
     }
 
+    // SORT
     if (sort === "price-low") {
       result.sort(
         (a, b) =>
-          Number(a.price || 0) - Number(b.price || 0)
+          Number(a.price || 0) -
+          Number(b.price || 0)
       );
     }
 
     if (sort === "price-high") {
       result.sort(
         (a, b) =>
-          Number(b.price || 0) - Number(a.price || 0)
+          Number(b.price || 0) -
+          Number(a.price || 0)
       );
     }
 
     if (sort === "newest") {
       result.sort((a, b) => {
         const dateA = a.created_at
-          ? new Date(a.created_at).getTime()
+          ? new Date(
+              a.created_at
+            ).getTime()
           : 0;
 
         const dateB = b.created_at
-          ? new Date(b.created_at).getTime()
+          ? new Date(
+              b.created_at
+            ).getTime()
           : 0;
 
         return dateB - dateA;
@@ -120,10 +137,7 @@ function ShopContent() {
 
       <main className="shop">
 
-        {/* =========================
-            SHOP HEADER
-        ========================== */}
-
+        {/* SHOP HEADER */}
         <section className="shop-head">
           <div>
             <p className="eyebrow">
@@ -141,10 +155,7 @@ function ShopContent() {
           </p>
         </section>
 
-        {/* =========================
-            FILTER / SORT BAR
-        ========================== */}
-
+        {/* FILTER BAR */}
         <div className="shop-toolbar">
 
           <div className="category-filters">
@@ -196,101 +207,108 @@ function ShopContent() {
 
         </div>
 
-        {/* =========================
-            PRODUCT AREA
-        ========================== */}
-
+        {/* PRODUCTS */}
         {loading ? (
-
           <div className="section">
             <p>
               Loading S.K collection...
             </p>
           </div>
-
         ) : filteredProducts.length === 0 ? (
-
           <div className="section">
             <h2>
               No products available
             </h2>
 
             <p>
-              Products added through the S.K Admin
-              panel will appear here.
+              Products added through the
+              S.K Admin panel will appear
+              here.
             </p>
           </div>
-
         ) : (
-
           <div className="grid four">
 
-            {filteredProducts.map((product) => {
+            {filteredProducts.map(
+              (product) => {
 
-              const safeProduct = {
-                ...product,
+                const safeProduct = {
+                  ...product,
 
-                salePrice:
-                  product.sale_price ??
-                  undefined,
+                  salePrice:
+                    product.sale_price ??
+                    undefined,
 
-                newArrival:
-                  product.new_arrival ??
-                  false,
+                  newArrival:
+                    product.new_arrival ??
+                    false,
 
-                images:
-                  Array.isArray(product.images) &&
-                  product.images.length > 0
-                    ? product.images
-                    : product.image
+                  images:
+                    Array.isArray(
+                      product.images
+                    ) &&
+                    product.images.length > 0
+                      ? product.images
+                      : product.image
                       ? [product.image]
                       : [],
 
-                colors:
-                  Array.isArray(product.colors)
-                    ? product.colors
-                    : [],
+                  colors:
+                    Array.isArray(
+                      product.colors
+                    )
+                      ? product.colors
+                      : [],
 
-                sizes:
-                  Array.isArray(product.sizes)
-                    ? product.sizes
-                    : [],
+                  sizes:
+                    Array.isArray(
+                      product.sizes
+                    )
+                      ? product.sizes
+                      : [],
 
-                price:
-                  Number(product.price || 0),
+                  price: Number(
+                    product.price || 0
+                  ),
 
-                stock:
-                  Number(product.stock || 0),
+                  stock: Number(
+                    product.stock || 0
+                  ),
 
-                rating:
-                  Number(product.rating || 0),
+                  rating: Number(
+                    product.rating || 0
+                  ),
 
-                reviews:
-                  Number(product.reviews || 0),
+                  reviews: Number(
+                    product.reviews || 0
+                  ),
 
-                description:
-                  product.description || "",
+                  description:
+                    product.description ||
+                    "",
 
-                material:
-                  product.material || "",
+                  material:
+                    product.material ||
+                    "",
 
-                fit:
-                  product.fit || "",
+                  fit:
+                    product.fit || "",
 
-                sku:
-                  product.sku || product.id,
-              };
+                  sku:
+                    product.sku ||
+                    product.id,
+                };
 
-              return (
-                <ProductCard
-                  key={product.id}
-                  p={safeProduct}
-                />
-              );
-            })}
+                return (
+                  <ProductCard
+                    key={product.id}
+                    p={safeProduct}
+                  />
+                );
+              }
+            )}
 
           </div>
-
         )}
 
       </main>
@@ -299,12 +317,6 @@ function ShopContent() {
     </>
   );
 }
-
-/* =========================================
-   SUSPENSE BOUNDARY
-   Fixes production prerendering with
-   useSearchParams()
-========================================= */
 
 export default function Shop() {
   return (

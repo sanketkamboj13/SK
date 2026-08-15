@@ -1,6 +1,6 @@
  "use client";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { products, Product } from "../lib/products";
+import { Product } from "../lib/products";
 
 type CartItem = Product & { qty: number; size: string; color: string };
 type Store = {

@@ -12,30 +12,29 @@ import { ArrowRight } from "lucide-react";
 export default async function Home() {
   const products = await getProducts();
 
-  // Only use products that actually exist.
+  // Products marked as featured
   const featured = products
     .filter((p: any) => p.featured)
     .slice(0, 6);
 
-  // Fallback products for sections that need imagery.
-  // This prevents crashes when the database has only a few products.
-  const availableProducts = products.length > 0 ? products : [];
+  // Use database products for category/editorial images
+  const availableProducts = products;
 
   const getProductImage = (
     index: number,
     imageIndex = 0
   ) => {
-    const product =
-      availableProducts[index % availableProducts.length];
-
-    if (!product) {
+    if (availableProducts.length === 0) {
       return "/images/hero-model.jpg";
     }
 
+    const product =
+      availableProducts[index % availableProducts.length];
+
     return (
-      product.images?.[imageIndex] ||
-      product.images?.[0] ||
-      product.image ||
+      product?.images?.[imageIndex] ||
+      product?.images?.[0] ||
+      product?.image ||
       "/images/hero-model.jpg"
     );
   };
@@ -68,7 +67,10 @@ export default async function Home() {
             </p>
 
             <div>
-              <Link className="btn light" href="/shop">
+              <Link
+                className="btn light"
+                href="/shop"
+              >
                 SHOP MEN
               </Link>
 
@@ -93,19 +95,19 @@ export default async function Home() {
 
           {featured.length > 0 ? (
             <div className="grid four">
-              {featured.map((p: any) => (
+              {featured.map((product: any) => (
                 <ProductCard
-                  key={p.id}
-                  p={p}
+                  key={product.id}
+                  p={product}
                 />
               ))}
             </div>
           ) : products.length > 0 ? (
             <div className="grid four">
-              {products.slice(0, 6).map((p: any) => (
+              {products.slice(0, 6).map((product: any) => (
                 <ProductCard
-                  key={p.id}
-                  p={p}
+                  key={product.id}
+                  p={product}
                 />
               ))}
             </div>
@@ -126,25 +128,27 @@ export default async function Home() {
           />
 
           <div className="category-grid">
-            {categories.slice(0, 6).map((category, index) => (
-              <Link
-                key={category}
-                href={`/shop?category=${encodeURIComponent(
-                  category
-                )}`}
-                className="cat"
-              >
-                <img
-                  src={getProductImage(index)}
-                  alt={`${category} men's fashion`}
-                />
+            {categories.slice(0, 6).map(
+              (category, index) => (
+                <Link
+                  key={category}
+                  href={`/shop?category=${encodeURIComponent(
+                    category
+                  )}`}
+                  className="cat"
+                >
+                  <img
+                    src={getProductImage(index)}
+                    alt={`${category} men's fashion`}
+                  />
 
-                <span>
-                  {category.toUpperCase()}
-                  <ArrowRight />
-                </span>
-              </Link>
-            ))}
+                  <span>
+                    {category.toUpperCase()}
+                    <ArrowRight />
+                  </span>
+                </Link>
+              )
+            )}
           </div>
         </section>
 
