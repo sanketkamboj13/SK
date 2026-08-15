@@ -42,12 +42,9 @@ function ShopContent() {
     async function loadProducts() {
       setLoading(true);
 
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .order("created_at", {
-          ascending: false,
-        });
+   const { data, error } = await supabase
+  .from("products")
+  .select("*");
 
       if (error) {
         console.error(
